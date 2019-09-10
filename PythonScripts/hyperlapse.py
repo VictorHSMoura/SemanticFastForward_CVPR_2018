@@ -59,7 +59,7 @@ class SemanticHyperlapse(object):
         return fullCommand
 
     def runOpticalFlow(self): # pragma: no cover
-        os.chdir('Vid2OpticalFlowCSV')
+        os.chdir('_SemanticFastForward_JVCI_2018/Vid2OpticalFlowCSV')
 
         if not self.opticalFlowExists():
             os.system(self.opticalFlowCommand())
@@ -69,15 +69,16 @@ class SemanticHyperlapse(object):
         os.chdir(self.path)
 
     def getSemanticInfo(self, eng): # pragma: no cover
-        eng.cd('SemanticScripts')
+        eng.cd('_SemanticFastForward_JVCI_2018/SemanticScripts')
         eng.addpath(self.video.path())
         eng.addpath(os.getcwd())
-
-        videoFile = self.video.file()
-        extractor = self.extractor
         
-        eng.ExtractAndSave(videoFile, extractor, nargout=0)
+        eng.ExtractAndSave(self.video.file(), self.extractor, nargout=0)
         eng.cd(self.path)
+
+        eng.generate_transistion_costs(
+            self.video.file(), self.velocity, self.extractor, nargout=0
+        )
 
     def speedUp(self, eng): # pragma: no cover
         eng.addpath(os.getcwd())
@@ -89,7 +90,7 @@ class SemanticHyperlapse(object):
         )
         return videoName
 
-    def checkParameters(self):	
+    def checkParameters(self):
         self.checkVideoInput()
         self.checkExtractor()
         self.checkAndSetVelocity()
@@ -106,11 +107,11 @@ class SemanticHyperlapse(object):
         write('3/6 - Getting Semantic Info\n', 'title')
         self.getSemanticInfo(eng)
 
-        write('4/6 - Speeding-Up Video\n', 'title')
+        """write('4/6 - Speeding-Up Video\n', 'title')
         videoName = self.speedUp(eng)
         eng.quit()
     
-        return Video(videoName + '.avi')
+        return Video(videoName + '.avi')"""
 
     def stabilizePart(self, acceleratedVideo, writeFunction): # pragma: no cover
         stabilizer = Stabilizer(self.video, acceleratedVideo, self.velocity)
@@ -118,8 +119,9 @@ class SemanticHyperlapse(object):
         os.chdir(self.path)
 
     def run(self, writeFunction): # pragma: no cover
-        acceleratedVideo = self.speedUpPart(writeFunction)
-        self.stabilizePart(acceleratedVideo, writeFunction)
+        # acceleratedVideo =
+        self.speedUpPart(writeFunction)
+        # self.stabilizePart(acceleratedVideo, writeFunction)
 
     def correctPath(self, path):
         splittedPath = path.split(' ')

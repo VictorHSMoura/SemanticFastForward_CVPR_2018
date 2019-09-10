@@ -1,1 +1,17 @@
+ConfigWrapperIncrementalID.mat
+
+# Python Classes
+PythonScripts/*.pyc
+
+# Test Coverage
+PythonScripts/.coverage
+PythonScripts/htmlcov
+
+# Stabilizer
+AcceleratedVideoStabilizer/build/
+AcceleratedVideoStabilizer/experiment_hyperlapse.xml
+
 .vscode/
+
+# Optical Flow Objects
+Vid2OpticalFlowCSV/obj/
