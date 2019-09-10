@@ -15,3 +15,9 @@ AcceleratedVideoStabilizer/experiment_hyperlapse.xml
 
 # Optical Flow Objects
 Vid2OpticalFlowCSV/obj/
+
+# _Dartknet files
+_Darknet/obj/
+_Darknet/backup/
+_Darknet/results/
+_Darknet/darknet
