@@ -19,6 +19,7 @@ def check_opencv_version(major, lib=None):
 
 argc = len(sys.argv)
 classes = 80
+framecount = 0
 
 def loadYoloData(yolo_lines):
     descriptors = np.zeros((framecount, classes), dtype=np.int16)
@@ -36,15 +37,10 @@ def loadYoloData(yolo_lines):
     
     return descriptors
 
-if __name__ == '__main__':
-    
-    if argc < 3:
-        print "USAGE ERROR: python generate_descriptor.py <video_path> <yolo_extraction> <desc_output>"
-        exit()
-
-    cap = cv2.VideoCapture(sys.argv[1])
-    YoloLines = open(sys.argv[2], 'r').readlines()
-
+def run(video, extraction, output):
+    cap = cv2.VideoCapture(video)
+    YoloLines = open(extraction, 'r').readlines()
+    global framecount
     if is_cv2():
         framecount = (int)(cap.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT))
     else:
@@ -52,7 +48,16 @@ if __name__ == '__main__':
             
     descriptors = loadYoloData(YoloLines)
 
-    np.savetxt(sys.argv[3], descriptors, delimiter=",", fmt='%i')
+    np.savetxt(output, descriptors, delimiter=",", fmt='%i')
 
     print "Total objects: ", np.sum(descriptors)
     print "Done :)"
+
+
+if __name__ == '__main__':
+    
+    if argc < 3:
+        print "USAGE ERROR: python generate_descriptor.py <video_path> <yolo_extraction> <desc_output>"
+        exit()
+
+    run(sys.argv[1], sys.argv[2], sys.argv[3])

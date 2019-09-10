@@ -80,6 +80,15 @@ class SemanticHyperlapse(object):
             self.video.file(), self.velocity, self.extractor, nargout=0
         )
 
+    def yoloExtraction(self):
+        os.chdir('_Darknet')
+
+        if self.darknetFilesExists():
+            # TODO: run darknet and generate_yolo_descryptor.py
+            pass
+        else:
+            return 'Please compile the Darknet and download yolo.weights first.\n'
+
     def speedUp(self, eng): # pragma: no cover
         eng.addpath(os.getcwd())
         eng.addpath('Util')
@@ -95,6 +104,9 @@ class SemanticHyperlapse(object):
         self.checkExtractor()
         self.checkAndSetVelocity()
 
+    # TODO: raise an exception if darknet files don't exist in order to stop the execution
+    # or maybe check it before running the program, like the inputs
+    # if you do the second option, do the same to the stabilizer
     def speedUpPart(self, writeFunction): # pragma: no cover
         write = writeFunction
         
@@ -107,11 +119,18 @@ class SemanticHyperlapse(object):
         write('3/6 - Getting Semantic Info\n', 'title')
         self.getSemanticInfo(eng)
 
-        """write('4/6 - Speeding-Up Video\n', 'title')
-        videoName = self.speedUp(eng)
+        write('4/6 - Extracting Yolo Info\n', 'title')
+        errorMessage = self.yoloExtraction()
+        
+        if not self.isEmpty(errorMessage):
+            write(errorMessage, 'normal')
+        
+        else:
+            write('4/6 - Speeding-Up Video\n', 'title')
+            videoName = self.speedUp(eng)
         eng.quit()
     
-        return Video(videoName + '.avi')"""
+        return Video(videoName + '.avi')
 
     def stabilizePart(self, acceleratedVideo, writeFunction): # pragma: no cover
         stabilizer = Stabilizer(self.video, acceleratedVideo, self.velocity)
