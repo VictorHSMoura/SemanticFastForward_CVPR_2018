@@ -1,10 +1,14 @@
 import matlab.engine
 import os
 from subprocess import Popen, PIPE, STDOUT
-from hyperlapseExceptions import InputError
+from hyperlapseExceptions import InputError, BuildError
 from video import Video
 from stabilizer import Stabilizer
+import util
+import sys
+sys.path.insert(0, '..')
 
+import generate_yolo_descriptor
 class SemanticHyperlapse(object):
     def __init__(self, video, extractor, velocity):
         self.video = video
@@ -16,11 +20,11 @@ class SemanticHyperlapse(object):
         self.checkParameters()
 
     def checkExtractor(self):
-        if self.isEmpty(self.extractor):
+        if util.isEmpty(self.extractor):
             raise InputError('Please select an extractor')
 
     def checkAndSetVelocity(self):
-        if self.isEmpty(self.velocity):
+        if util.isEmpty(self.velocity):
             raise InputError('Please insert speedup')
         try:
             self.isVelocityValidNumber()
@@ -36,10 +40,15 @@ class SemanticHyperlapse(object):
         if velocity <= 1:
             raise InputError('Error: speedup <= 1')
 
-    def isEmpty(self, inputText):
-        if inputText == '':
-            return True
-        return False
+    def checkStabilizer(self):
+        buildFolder = '_SemanticFastForward_JVCI_2018/AcceleratedVideoStabilizer/build'
+        if not os.path.isdir(buildFolder) or not os.path.isfile(buildFolder +'/VideoStabilization'):
+            raise BuildError('Please compile the Stabilizer and run it again.\n')
+
+    def checkDarknet(self):
+        darknet = '_Darknet/darknet'
+        if not os.path.isfile(darknet):
+            raise BuildError('Please compile the Darknet and run it again.\n')
 
     def opticalFlowExists(self):
         videoFile = self.video.file()
@@ -48,7 +57,7 @@ class SemanticHyperlapse(object):
         return os.path.isfile(outputFile)
 
     def opticalFlowCommand(self):
-        videoFile = self.correctPath(self.video.file())
+        videoFile =  util.correctPath(self.video.file())
         command = './optflow'
         videoParam = ' -v ' + videoFile
         configParam = ' -c default-config.xml'
@@ -70,6 +79,7 @@ class SemanticHyperlapse(object):
 
     def getSemanticInfo(self, eng): # pragma: no cover
         eng.cd('_SemanticFastForward_JVCI_2018/SemanticScripts')
+        eng.addpath(self.path)
         eng.addpath(self.video.path())
         eng.addpath(os.getcwd())
         
@@ -80,71 +90,129 @@ class SemanticHyperlapse(object):
             self.video.file(), self.velocity, self.extractor, nargout=0
         )
 
+    def yoloFileExists(self, sufix):
+        videoFile = self.video.file()
+        outputFile = videoFile[:-4] + sufix
+
+        return os.path.isfile(outputFile)
+
+    def darknetCommand(self):
+        videoFile = ' ' + util.correctPath(self.video.file())
+        command = './darknet'
+        parameters = ' detector demo'
+        cfgs = ' cfg/coco.data cfg/yolo.cfg'
+        weights = ' yolo.weights'
+        output = videoFile[:-4] + '_yolo_raw.txt'
+
+        fullCommand = command + parameters + cfgs + weights + videoFile + output
+
+        return fullCommand
+
     def yoloExtraction(self):
         os.chdir('_Darknet')
 
-        if self.darknetFilesExists():
-            # TODO: run darknet and generate_yolo_descryptor.py
-            pass
+        if not self.yoloFileExists('_yolo_raw.txt'):
+            os.system(self.darknetCommand())
         else:
-            return 'Please compile the Darknet and download yolo.weights first.\n'
+            print('Yolo Extraction already done.')
+
+        if not self.yoloFileExists('_yolo_desc.csv'):
+            generate_yolo_descriptor.run(
+                self.video.file(), self.video.file()[:-4] + '_yolo_raw.txt',
+                self.video.file()[:-4] + '_yolo_desc.csv'
+            )
+        else:
+            print('Yolo Descriptor already done.')
+
+        os.chdir(self.path)
+
+    def generateXML(self, acceleratedVideo): # pragma: no cover
+        videoPath = util.correctPathXML(acceleratedVideo.path())
+        videoName = util.correctPathXML(acceleratedVideo.name())
+        videoFile = util.correctPathXML(acceleratedVideo.file())
+        oldVideoFile = util.correctPathXML(self.video.file())
+        velocity = str(int(self.velocity))
+        
+        xmlFile = 'experiment_hyperlapse.xml'
+        tags = [
+            'video_path', 'video_name', 'output_path', 'original_video_filename',
+            'selected_frames_filename', 'read_masterframes_filename',
+            'semantic_costs_filename',  'segmentSize', 'runningParallel',
+            'saveMasterFramesInDisk', 'saveVideoInDisk'
+        ]
+
+        values = [
+            videoPath, videoName, videoPath, oldVideoFile,
+            videoFile[:-5] + '_AppearanceCost_selected_frames.csv"', '',
+            oldVideoFile[:-5] + '_SemanticCosts.csv"',
+            '4', 'true', 'true', 'true']
+
+        file = open(xmlFile, 'w')
+        file.write('<?xml version=\"1.0\" ?>\n<opencv_storage>\n')
+        for i in range(len(tags)):
+            file.write('\t<' + tags[i] + '>\n')
+            file.write('\t\t' + values[i] + '\n')
+            file.write('\t</' + tags[i] + '>\n\n')
+        file.write('</opencv_storage>\n')
+        file.close()
+
+        return xmlFile
 
     def speedUp(self, eng): # pragma: no cover
         eng.addpath(os.getcwd())
-        eng.addpath('Util')
+        eng.addpath('LLC')
         
-        videoName = eng.SpeedupVideo(
-            self.video.path(), self.video.name(), self.extractor,
-            'Speedup', self.velocity, nargout=1
+        [frames, videoName] = eng.accelerate_video_LLC(
+            self.video.file(), self.extractor, 'Speedup', self.velocity,
+            'GenerateVideo', True, nargout=2
         )
         return videoName
+
+    def runStabilization(self, xmlFile):
+        os.chdir('build')
+        os.system('./VideoStabilization ' + "../" + xmlFile)
 
     def checkParameters(self):
         self.checkVideoInput()
         self.checkExtractor()
         self.checkAndSetVelocity()
+        self.checkStabilizer()
+        self.checkDarknet()
 
-    # TODO: raise an exception if darknet files don't exist in order to stop the execution
-    # or maybe check it before running the program, like the inputs
-    # if you do the second option, do the same to the stabilizer
     def speedUpPart(self, writeFunction): # pragma: no cover
         write = writeFunction
         
-        write('1/6 - Running Optical Flow\n', 'title')
+        write('1/7 - Running Optical Flow\n', 'title')
         self.runOpticalFlow()
     
-        write('2/6 - Starting Matlab\n', 'title')
+        write('2/7 - Starting Matlab\n', 'title')
         eng = matlab.engine.start_matlab('-nodisplay')
     
-        write('3/6 - Getting Semantic Info\n', 'title')
+        write('3/7 - Getting Semantic Info\n', 'title')
         self.getSemanticInfo(eng)
 
-        write('4/6 - Extracting Yolo Info\n', 'title')
-        errorMessage = self.yoloExtraction()
+        write('4/7 - Extracting Yolo Info\n', 'title')
+        self.yoloExtraction()
         
-        if not self.isEmpty(errorMessage):
-            write(errorMessage, 'normal')
-        
-        else:
-            write('4/6 - Speeding-Up Video\n', 'title')
-            videoName = self.speedUp(eng)
+        write('5/7 - Speeding-Up Video\n', 'title')
+        videoName = self.speedUp(eng)
         eng.quit()
     
         return Video(videoName + '.avi')
 
     def stabilizePart(self, acceleratedVideo, writeFunction): # pragma: no cover
-        stabilizer = Stabilizer(self.video, acceleratedVideo, self.velocity)
-        stabilizer.run(writeFunction)
+        write = writeFunction
+        write('6/7 - Stabilizing\n', 'title')
+
+        os.chdir('_SemanticFastForward_JVCI_2018/AcceleratedVideoStabilizer')
+        xmlFile = self.generateXML(acceleratedVideo)
+        self.runStabilization(xmlFile)
+
+        write('7/7 - Finished\n', 'title')
+        # stabilizer = Stabilizer(self.video, acceleratedVideo, self.velocity)
+        # stabilizer.run(writeFunction)
         os.chdir(self.path)
 
     def run(self, writeFunction): # pragma: no cover
-        # acceleratedVideo =
-        self.speedUpPart(writeFunction)
-        # self.stabilizePart(acceleratedVideo, writeFunction)
-
-    def correctPath(self, path):
-        splittedPath = path.split(' ')
-        finalPath = ''
-        for i in splittedPath:
-            finalPath += (i + '\ ')
-        return finalPath[:-2]
+        acceleratedVideo = self.speedUpPart(writeFunction)
+        self.stabilizePart(acceleratedVideo, writeFunction)

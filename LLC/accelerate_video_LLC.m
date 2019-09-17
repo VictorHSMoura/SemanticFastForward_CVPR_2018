@@ -69,7 +69,7 @@
 %>
 %> @see adaptative_frame_selection_LLC.m
 % ========================================================================
-function [ selectedFrames ] = accelerate_video_LLC( inputVideo , semanticExtractor, varargin )
+function [ selectedFrames, outputVideo ] = accelerate_video_LLC( inputVideo , semanticExtractor, varargin )
 
     %% Input parse.
     p = inputParser;
@@ -118,7 +118,7 @@ function [ selectedFrames ] = accelerate_video_LLC( inputVideo , semanticExtract
     path.out.costsMatrix        = [prefix '_Costs_' num2str(p.Results.Speedup) 'x.mat'];
     path.out.generalResults     = [ path.out.outputDir '/' 'General_Results.csv' ];
     path.out.selectedFrames     = [ path.out.outputDir '/' fname '_LLC_EXP_' id.computer '_' num2str(id.experiment, '%04d') '_' p.Results.CostsMode 'Cost_selected_frames.csv'];
-    path.outputVideo        = [ path.out.outputDir '/' fname '_LLC_EXP_' id.computer '_' num2str(id.experiment, '%04d') ];
+    path.out.outputVideo        = [ path.out.outputDir '/' fname '_LLC_EXP_' id.computer '_' num2str(id.experiment, '%04d') ];
     
     % Checking
     if ~check_paths(path);
@@ -177,9 +177,12 @@ function [ selectedFrames ] = accelerate_video_LLC( inputVideo , semanticExtract
     write_selected_frames(path.out.selectedFrames, ranges, selectedFrames);
     write_general_results(path.out.generalResults, id, fname, 'LLC', semanticExtractor, p);
 
+    outputVideo = '';
+
     %% Save final video.
     if p.Results.GenerateVideo
         save_accelerated_video( path.in.video , path.out.outputVideo , selectedFrames );
+        outputVideo = path.out.outputVideo;
     end
     
 end

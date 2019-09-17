@@ -1,7 +1,9 @@
 ConfigWrapperIncrementalID.mat
+.ID_MANAGER
 
 # Python Classes
 PythonScripts/*.pyc
+*.pyc
 
 # Test Coverage
 PythonScripts/.coverage
@@ -21,3 +23,4 @@ _Darknet/obj/
 _Darknet/backup/
 _Darknet/results/
 _Darknet/darknet
+_Darknet/yolo.weights

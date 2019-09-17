@@ -8,7 +8,7 @@ from functools import partial
 from video import Video
 from hyperlapse import SemanticHyperlapse
 from stabilizer import Stabilizer
-from hyperlapseExceptions import InputError
+from hyperlapseExceptions import InputError, BuildError
 import threading, sys
 
 class MainWindow(object):
@@ -151,7 +151,7 @@ class MainWindow(object):
             hyperlapse = SemanticHyperlapse(video, extractor, speed)           
             self.createLogWindow()
             hyperlapse.run(self.addLog)
-        except InputError as IE:
+        except (InputError, BuildError) as IE:
             self.errorLabel['text'] = IE.msg
             self.errorLabel.grid(row=4, columnspan=3)
 

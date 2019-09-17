@@ -36,6 +36,20 @@ class TestHyperlapse(unittest.TestCase):
 
         self.assertEqual(command, expectedCommand)
 
+    def testDarknetCommand(self):
+        command = self.hyperlapse.darknetCommand()
+        expectedCommand = './darknet detector demo cfg/coco.data cfg/yolo.cfg '\
+            + 'yolo.weights /home/victorhugomoura/Documents/example.mp4 ' \
+            + '/home/victorhugomoura/Documents/example_yolo_raw.txt'
+        self.assertEqual(command, expectedCommand)
+
+        self.hyperlapse.video = Video('/home/victorhugomoura/Documents/teste.mp4')
+        command = self.hyperlapse.darknetCommand()
+        expectedCommand = './darknet detector demo cfg/coco.data cfg/yolo.cfg '\
+            + 'yolo.weights /home/victorhugomoura/Documents/teste.mp4 ' \
+            + '/home/victorhugomoura/Documents/teste_yolo_raw.txt'
+        self.assertEqual(command, expectedCommand)
+
     def testOpticalFlowExists(self):
         self.assertTrue(self.hyperlapse.opticalFlowExists()) # works only if the file already exists
 

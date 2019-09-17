@@ -44,16 +44,20 @@
 % ========================================================================
 function [ videoFeatures , optical_flow_features ] = video_features_frames( videoFilename , ofFilename , semanticFilename , yoloDescFilename)
    
-    [ movementFeatures , optical_flow_features ] = get_movement_features( ofFilename );
-     nFrames = size( movementFeatures , 2 );
-     appearanceFeatures = get_appearance_features( videoFilename , nFrames );
      semanticFeatures = get_semantic_features_frames( semanticFilename , yoloDescFilename);
-         
+     [ movementFeatures , optical_flow_features ] = get_movement_features( ofFilename );
+     
+     nFrames = size( semanticFeatures , 2 );
+     appearanceFeatures = get_appearance_features( videoFilename , nFrames );
+     
+     movementFeatures = [movementFeatures zeros(size(movementFeatures,1),nFrames-size(movementFeatures,2))];
+     optical_flow_features = [optical_flow_features zeros(size(optical_flow_features,1),nFrames-size(optical_flow_features,2))];
+     
+     %appearanceFeatures = appearanceFeatures(:,size(semanticFeatures,1));
      videoFeatures = [movementFeatures; appearanceFeatures; semanticFeatures ];
      videoFeatures = whitening_matrix(videoFeatures')';
 
 end
-
  
 % ========================================================================
 %> @brief Calculate the appearance features of the video frames.

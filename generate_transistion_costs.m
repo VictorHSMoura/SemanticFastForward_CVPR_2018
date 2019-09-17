@@ -14,10 +14,8 @@ end
 fname_costs = [video_dir '/' fname '_Costs_' num2str(speedupRate) 'x.mat'];
 fname_csv_cost = [video_dir '/' fname '_SemanticCosts.csv'];
 
-if (exist(fname_costs, 'file') == 2 )
-    fprintf('%sThe Transition Costs file already exists.\n', log_line_prefix);
-elseif (exist(fname_csv_cost, 'file') == 2 )
-    fprintf('%sThe Semantic Costs CSV file already exists.\n', log_line_prefix);
+if (exist(fname_costs, 'file') == 2 && exist(fname_csv_cost, 'file') == 2)
+    fprintf('%sThe Transition Costs and the Semantic Costs CSV files already exist.\n', log_line_prefix);
 else
     fprintf('%sReading input video...\n', log_line_prefix);
     reader = VideoReader(inputVideo);
