@@ -3,6 +3,7 @@ from hyperlapse import SemanticHyperlapse
 from stabilizer import Stabilizer
 from video import Video
 from hyperlapseExceptions import InputError
+import util
 import os
 
 class TestHyperlapse(unittest.TestCase):
@@ -50,9 +51,6 @@ class TestHyperlapse(unittest.TestCase):
             + '/home/victorhugomoura/Documents/teste_yolo_raw.txt'
         self.assertEqual(command, expectedCommand)
 
-    def testOpticalFlowExists(self):
-        self.assertTrue(self.hyperlapse.opticalFlowExists()) # works only if the file already exists
-
     def testCheckVideoInput(self):
         self.hyperlapse.checkVideoInput()
         self.hyperlapse.video = Video('')
@@ -95,22 +93,27 @@ class TestVideo(unittest.TestCase):
         self.video.videofile = '/home/victorhugomoura/Documents/example.csv'
         self.assertTrue(self.video.isInvalid())
 
-class TestStabilizer(unittest.TestCase):
+class TestUtil(unittest.TestCase):
 
-    def setUp(self):
-        originalVideo = Video('/home/victorhugomoura/Documents/example.mp4')
-        acceleratedVideo = Video('/home/victorhugomoura/Documents/Folder With Spaces/example.avi')
-        velocity = 10
-        self.stabilizer = Stabilizer(originalVideo, acceleratedVideo, velocity)
+    def testCorrectPathXML(self):
+        path = '/home/victorhugomoura/Documents/Folder With Spaces/example.mp4'
+        expected = '"/home/victorhugomoura/Documents/Folder&#32;With&#32;'\
+                + 'Spaces/example.mp4"'
+
+        self.assertEqual(expected, util.correctPathXML(path))
 
     def testCorrectPath(self):
-        original = self.stabilizer.originalVideo.file()
-        expected = '"/home/victorhugomoura/Documents/example.mp4"'
-        self.assertEqual(self.stabilizer.correctPath(original), expected)
+        path = '/home/victorhugomoura/Documents/Folder With Spaces/example.mp4'
+        expected = '/home/victorhugomoura/Documents/Folder\ With\ Spaces/example.mp4'
 
-        original = self.stabilizer.acceleratedVideo.file()
-        expected = '"/home/victorhugomoura/Documents/Folder&#32;With&#32;Spaces/example.avi"'
-        self.assertEqual(self.stabilizer.correctPath(original), expected)
+        self.assertEqual(expected, util.correctPath(path))
+
+    def testIsEmpty(self):
+        string = ''
+        self.assertTrue(util.isEmpty(string))
+
+        string = 'not empty'
+        self.assertFalse(util.isEmpty(string))
 
 if __name__ == '__main__':
     unittest.main()

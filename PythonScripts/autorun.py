@@ -148,7 +148,7 @@ class MainWindow(object):
         video, speed, extractor = self.preProcess()
 
         try:
-            hyperlapse = SemanticHyperlapse(video, extractor, speed)           
+            hyperlapse = SemanticHyperlapse(video, extractor, speed)
             self.createLogWindow()
             hyperlapse.run(self.addLog)
         except (InputError, BuildError) as IE:

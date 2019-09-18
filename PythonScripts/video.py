@@ -26,9 +26,9 @@ class Video(object):
             return True
         return False
 
-    def checkInput(self, videoType):
+    def checkInput(self):
         if self.isEmpty():
-            raise InputError('Please insert ' + videoType.lower() + ' video first')
+            raise InputError('Please insert input video first')
 
         if self.isInvalid():
-            raise InputError(videoType + ' video format invalid.\nValid formats: mp4, avi')
+            raise InputError('Input video format invalid.\nValid formats: mp4, avi')

@@ -3,12 +3,13 @@ import os
 from subprocess import Popen, PIPE, STDOUT
 from hyperlapseExceptions import InputError, BuildError
 from video import Video
-from stabilizer import Stabilizer
 import util
 import sys
 sys.path.insert(0, '..')
 
 import generate_yolo_descriptor
+
+#don't cover functions that create or check if a file exists
 class SemanticHyperlapse(object):
     def __init__(self, video, extractor, velocity):
         self.video = video
@@ -33,24 +34,24 @@ class SemanticHyperlapse(object):
             raise InputError('Invalid speedup value')
     
     def checkVideoInput(self):
-        self.video.checkInput('Input')
+        self.video.checkInput()
 
     def isVelocityValidNumber(self):
         velocity = int(self.velocity) #raises ValueError if it isn't a number
         if velocity <= 1:
             raise InputError('Error: speedup <= 1')
 
-    def checkStabilizer(self):
+    def checkStabilizer(self): # pragma: no cover
         buildFolder = '_SemanticFastForward_JVCI_2018/AcceleratedVideoStabilizer/build'
         if not os.path.isdir(buildFolder) or not os.path.isfile(buildFolder +'/VideoStabilization'):
             raise BuildError('Please compile the Stabilizer and run it again.\n')
 
-    def checkDarknet(self):
+    def checkDarknet(self): # pragma: no cover
         darknet = '_Darknet/darknet'
         if not os.path.isfile(darknet):
             raise BuildError('Please compile the Darknet and run it again.\n')
 
-    def opticalFlowExists(self):
+    def opticalFlowExists(self): # pragma: no cover
         videoFile = self.video.file()
         outputFile = videoFile[:-4] + '.csv'
 
@@ -90,7 +91,7 @@ class SemanticHyperlapse(object):
             self.video.file(), self.velocity, self.extractor, nargout=0
         )
 
-    def yoloFileExists(self, sufix):
+    def yoloFileExists(self, sufix): # pragma: no cover
         videoFile = self.video.file()
         outputFile = videoFile[:-4] + sufix
 
@@ -108,7 +109,7 @@ class SemanticHyperlapse(object):
 
         return fullCommand
 
-    def yoloExtraction(self):
+    def yoloExtraction(self): # pragma: no cover
         os.chdir('_Darknet')
 
         if not self.yoloFileExists('_yolo_raw.txt'):
@@ -168,16 +169,18 @@ class SemanticHyperlapse(object):
         )
         return videoName
 
-    def runStabilization(self, xmlFile):
+    def runStabilization(self, xmlFile): # pragma: no cover
         os.chdir('build')
         os.system('./VideoStabilization ' + "../" + xmlFile)
+
+    def checkDependencies(self): # pragma: no cover
+        self.checkStabilizer()
+        self.checkDarknet()
 
     def checkParameters(self):
         self.checkVideoInput()
         self.checkExtractor()
         self.checkAndSetVelocity()
-        self.checkStabilizer()
-        self.checkDarknet()
 
     def speedUpPart(self, writeFunction): # pragma: no cover
         write = writeFunction
@@ -209,10 +212,9 @@ class SemanticHyperlapse(object):
         self.runStabilization(xmlFile)
 
         write('7/7 - Finished\n', 'title')
-        # stabilizer = Stabilizer(self.video, acceleratedVideo, self.velocity)
-        # stabilizer.run(writeFunction)
         os.chdir(self.path)
 
     def run(self, writeFunction): # pragma: no cover
+        self.checkDependencies()
         acceleratedVideo = self.speedUpPart(writeFunction)
         self.stabilizePart(acceleratedVideo, writeFunction)
