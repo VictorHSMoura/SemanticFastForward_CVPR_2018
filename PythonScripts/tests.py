@@ -1,6 +1,5 @@
 import unittest
 from hyperlapse import SemanticHyperlapse
-from stabilizer import Stabilizer
 from video import Video
 from hyperlapseExceptions import InputError
 import util

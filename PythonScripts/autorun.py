@@ -7,7 +7,6 @@ import os, matlab.engine, subprocess
 from functools import partial
 from video import Video
 from hyperlapse import SemanticHyperlapse
-from stabilizer import Stabilizer
 from hyperlapseExceptions import InputError, BuildError
 import threading, sys
 
