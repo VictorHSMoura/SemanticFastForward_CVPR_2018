@@ -16,7 +16,9 @@ AcceleratedVideoStabilizer/experiment_hyperlapse.xml
 .vscode/
 
 # Optical Flow Objects
-Vid2OpticalFlowCSV/obj/
+_Vid2OpticalFlowCSV/obj/
+_Vid2OpticalFlowCSV/optflow
+.ID_MANAGER
 
 # _Dartknet files
 _Darknet/obj/
