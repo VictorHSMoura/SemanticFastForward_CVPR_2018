@@ -5,7 +5,7 @@ from hyperlapseExceptions import InputError, BuildError
 from video import Video
 import util
 import sys
-sys.path.insert(0, '..')
+sys.path.insert(0, '../python_codes')
 
 import generate_yolo_descriptor
 
@@ -80,7 +80,7 @@ class SemanticHyperlapse(object):
 
     def getSemanticInfo(self, eng): # pragma: no cover
         eng.cd('_SemanticFastForward_JVCI_2018/SemanticScripts')
-        eng.addpath(self.path)
+        eng.addpath(self.path + '/features')
         eng.addpath(self.video.path())
         eng.addpath(os.getcwd())
         
@@ -144,7 +144,7 @@ class SemanticHyperlapse(object):
 
         values = [
             videoPath, videoName, videoPath, oldVideoFile,
-            videoFile[:-5] + '_AppearanceCost_selected_frames.csv"', '',
+            videoFile[:-5] + '_selected_frames.csv"', '',
             oldVideoFile[:-5] + '_SemanticCosts.csv"',
             '4', 'true', 'true', 'true']
 
@@ -215,6 +215,5 @@ class SemanticHyperlapse(object):
         os.chdir(self.path)
 
     def run(self, writeFunction): # pragma: no cover
-        self.checkDependencies()
         acceleratedVideo = self.speedUpPart(writeFunction)
         self.stabilizePart(acceleratedVideo, writeFunction)
