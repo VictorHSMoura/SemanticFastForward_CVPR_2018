@@ -30,7 +30,7 @@ Belo Horizonte - Minas Gerais -Brazil
 
 ![VeRLab](https://www.dcc.ufmg.br/dcc/sites/default/files/public/verlab-logo.png)
 
-**VeRLab:** Laboratory of Computer Vison and Robotics   
+**VeRLab:** Laboratory of Computer Vision and Robotics   
 https://www.verlab.dcc.ufmg.br
 
 ## Dataset ##
@@ -53,10 +53,11 @@ DoMSEV is an 80-hour dataset of multimodal (RGB-D, IMU, and GPS) semantic egocen
 ### **1. I want to run it in a pre-processed example!** ###
 
 Just follow the steps in [Example.md](Example.md) file.
-<br/>
-<br/>
 
-### **2. I want to run it in my raw video!** ###
+### **2. I just want to speed-up my video!*** ###
+Just follow the steps in  [PythonScripts](PythonScripts) folder.
+
+### **3. I want to run it in my raw video!*** ###
 #### **Usage** ####
 
 The project processing is decribed by the following flowchart:
@@ -72,7 +73,7 @@ The project processing is decribed by the following flowchart:
     3. Into the Vid2OpticalFlowCSV folder, run the command:
 
 ```bash
-optflow -v < video_filename > -c < config.xml > -o < output_filename.csv >
+./optflow -v < video_filename > -c < config.xml > -o < output_filename.csv >
 ```
 
 | Options                     | Description                         | Type     | Example                       |
@@ -102,32 +103,28 @@ Save the output file using the same name of the input video with extension `.csv
 
 3. **Transistion Costs Estimation:**
 
-    The third step is to calculate the transition costs over all frames of the Input video and save it in a MAT file. On the MATLAB console, go to the "Util" folder inside the MIFF project and run the command:
+    The third step is to calculate the transition costs over all frames of the Input video and save it in a MAT file. On the MATLAB console, go to the "features" folder inside the main project directory and run the command:
 
 ```matlab
->> GenerateTransistionCosts(< video_dir >, <experiment>, < semantic_extractor_name >, <speed_up>)
+>> generate_transistion_costs(< input_video >, <speed_up>, < semantic_extractor_name >)
 ```
 
 | Parameters                      | Description                      | Type      | Example                    |
 | ------------------------------: | -------------------------------- | --------- | -------------------------- |
-| ` < video_dir > `               | Complete path to the video.      | _String_  | `~/Data/MyVideos`          |
-| ` < experiment > `              | Name to identify the experiment. | _String_  | `Biking_0p`                |
+| ` < input_video > `               | Complete path to the video.      | _String_  | `~/Data/MyVideos/Video.mp4`          |
 | ` < semantic_extractor_name > ` | Semantic extractor algorithm.    | _String_  | `'face'` or `'pedestrian'` |
 | ` <speed_up> `                  | Desired speed-up rate            | _Integer_ | ` '10' `                   |
 
-This function also save the Semantic Costs in a CSV file, which will be used in the Video Stabilizer. The files are saved in the same folder of the video (` < video_dir > `).
+This function also save the Semantic Costs in a CSV file, which will be used in the Video Stabilizer. The files are saved in the same folder of the video (` < input_video > `).
 
 4. **Yolo Extractor**
 
 To use the Yolo Extractor:
-1. Clone the Yolo repository: `git clone https://github.com/pjreddie/darknet.git`
-2. Go to darknet folder: `cd darknet/`
-3. To make sure you using the same code, go back to an specific commit: `git reset b3c4fc9f223d9b6f50a1652d8d116fcdcc16f2e8 --hard`
-4. Copy the files from [_Darknet](./_Darknet) (in the 2018-cvpr-silva-sparsecoding directory) to the `src/` folder
-5. Modify the `Makefile` to match your specification. Notice that for our purpose the OpenCV option is mandatory, so change the line `OPENCV=0` for `OPENCV=1`
+1. Go to the [_Darknet](_Darknet) folder
+2. Modify the `Makefile` to match your specification. Notice that for our purpose the OpenCV option is mandatory, so change the line `OPENCV=0` for `OPENCV=1`
 
-6. Run `make`
-7. To download the weights run: `wget https://www.verlab.dcc.ufmg.br/repository/hyperlapse/data/cvpr2018_yolo/yolo.weights`
+3. Run `make`
+4. To download the weights run: `wget https://www.verlab.dcc.ufmg.br/repository/hyperlapse/data/cvpr2018_yolo/yolo.weights`
 
 To use the extractor run:
 
@@ -186,6 +183,10 @@ After extracting all this information, you need to generate the descriptor. Go b
 | -------------------------: | -------------------------------------------- | -------- | -------------------------- |
 | ` < input_video > `         | Filename of the input video.             | _String_ | `example.mp4`                |
 | ` < semantic_extractor > ` | Descriptor used into the semantic extraction | _String_ | `'face'` or `'pedestrian'` |
+<br/>
+<br/>
+
+*Before starting, execute the first step described in [Example.md](Example.md) file.
 
 ## Citation ##
 

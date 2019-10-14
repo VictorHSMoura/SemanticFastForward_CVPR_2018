@@ -5,8 +5,6 @@ from hyperlapseExceptions import InputError, BuildError
 from video import Video
 import util
 import sys
-sys.path.insert(0, '../python_codes')
-
 import generate_yolo_descriptor
 
 #don't cover functions that create or check if a file exists
@@ -40,6 +38,16 @@ class SemanticHyperlapse(object):
         velocity = int(self.velocity) #raises ValueError if it isn't a number
         if velocity <= 1:
             raise InputError('Error: speedup <= 1')
+
+    def checkSubmodule(self):
+        submodule = '_SemanticFastForward_JVCI'
+        if len(os.listdir(submodule)) == 0:
+            raise BuildError('Please init the submodule folder and run it again.\n')
+
+    def checkOpticalFlow(self):
+        opticalFlow = '_SemanticFastForward_JVCI_2018/Vid2OpticalFlowCSV/optflow'
+        if not os.path.isfile(opticalFlow):
+            raise BuildError('Please compile the Optical Flow and run it again.\n')
 
     def checkStabilizer(self): # pragma: no cover
         buildFolder = '_SemanticFastForward_JVCI_2018/AcceleratedVideoStabilizer/build'
@@ -174,6 +182,8 @@ class SemanticHyperlapse(object):
         os.system('./VideoStabilization ' + "../" + xmlFile)
 
     def checkDependencies(self): # pragma: no cover
+        self.checkSubmodule()
+        self.checkOpticalFlow()
         self.checkStabilizer()
         self.checkDarknet()
 
